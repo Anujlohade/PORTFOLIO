@@ -1,2 +1,40 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+from datetime import datetime
+from typing import List, Dict
+
+class Invoice:
+    def __init__(self, invoice_id: str, client_name: str, client_email: str):
+        self.invoice_id = invoice_id
+        self.client_name = client_name
+        self.client_email = client_email
+        self.items: List[Dict] = []
+        self.date = datetime.now()
+        self.due_date = None
+
+    def add_item(self, description: str, quantity: float, unit_price: float):
+        self.items.append({
+            "description": description,
+            "quantity": quantity,
+            "unit_price": unit_price,
+            "total": quantity * unit_price
+        })
+
+    def calculate_subtotal(self) -> float:
+        return sum(item["total"] for item in self.items)
+
+    def calculate_tax(self, tax_rate: float = 0.1) -> float:
+        return self.calculate_subtotal() * tax_rate
+
+    def calculate_total(self, tax_rate: float = 0.1) -> float:
+        return self.calculate_subtotal() + self.calculate_tax(tax_rate)
+
+    def generate_text(self, tax_rate: float = 0.1) -> str:
+        output = f"INVOICE #{self.invoice_id}\n"
+        output += f"Date: {self.date.strftime('%Y-%m-%d')}\n"
+        output += f"Client: {self.client_name} ({self.client_email})\n\n"
+        output += "ITEMS:\n"
+        for item in self.items:
+            output += f"  {item['description']}: {item['quantity']} x ${item['unit_price']} = ${item['total']:.2f}\n"
+        output += f"\nSubtotal: ${self.calculate_subtotal():.2f}\n"
+        output += f"Tax (10%): ${self.calculate_tax(tax_rate):.2f}\n"
+        output += f"Total: ${self.calculate_total(tax_rate):.2f}\n"
+        return output
